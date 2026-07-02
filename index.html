@@ -1,0 +1,1281 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Expendedora MEF - Simulador</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'Segoe UI', Tahoma, sans-serif;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  min-height: 100vh;
+  padding: 20px;
+  color: #fff;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.header h1 {
+  font-size: 2em;
+  background: linear-gradient(90deg, #e94560, #ff6b6b);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-weight: 900;
+  letter-spacing: 2px;
+}
+
+.toggle-btn {
+  background: linear-gradient(135deg, #00b894, #00cec9);
+  border: none;
+  padding: 12px 24px;
+  border-radius: 25px;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+  font-size: 1em;
+  transition: all 0.3s;
+  box-shadow: 0 4px 15px rgba(0, 206, 201, 0.4);
+}
+
+.toggle-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 206, 201, 0.6);
+}
+
+.main-container {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 20px;
+  transition: all 0.5s;
+}
+
+.main-container.show-graph {
+  grid-template-columns: 2fr 1fr 1.5fr;
+}
+
+/* Panel de Productos */
+.products-panel {
+  background: linear-gradient(145deg, #2d3436, #1e272e);
+  border-radius: 20px;
+  padding: 25px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+  border: 3px solid #e94560;
+}
+
+.shelf {
+  margin-bottom: 25px;
+}
+
+.shelf-title {
+  font-size: 1.1em;
+  font-weight: bold;
+  color: #00b894;
+  margin-bottom: 15px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid #00b894;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.products-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+
+.product-card {
+  background: linear-gradient(145deg, #3d3d3d, #2d2d2d);
+  border: 2px solid #555;
+  border-radius: 12px;
+  padding: 15px 10px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s;
+  position: relative;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  overflow: hidden;
+  min-height: 140px;
+}
+
+.product-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  transition: background 0.3s;
+}
+
+.product-card:hover::before {
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.product-card.selected::before {
+  background: rgba(0, 184, 148, 0.4);
+}
+
+.product-card > * {
+  position: relative;
+  z-index: 1;
+}
+
+.product-icon {
+  font-size: 3em;
+  margin-bottom: 5px;
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+}
+
+.product-card:hover:not(:disabled) {
+  border-color: #00b894;
+  transform: translateY(-3px);
+  box-shadow: 0 5px 15px rgba(0, 184, 148, 0.3);
+}
+
+.product-card:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.product-card.selected {
+  border-color: #00b894;
+  background: linear-gradient(145deg, #00b894, #00a381);
+  box-shadow: 0 0 20px rgba(0, 184, 148, 0.5);
+}
+
+.product-code {
+  position: absolute;
+  top: 5px;
+  left: 8px;
+  font-size: 0.75em;
+  color: #ffd700;
+  font-weight: bold;
+  background: rgba(0,0,0,0.5);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.product-name {
+  font-size: 0.85em;
+  font-weight: bold;
+  margin-bottom: 3px;
+}
+
+.product-desc {
+  font-size: 0.7em;
+  color: #aaa;
+  margin-bottom: 5px;
+}
+
+.product-price {
+  color: #00b894;
+  font-weight: bold;
+  font-size: 1em;
+}
+
+.product-card.selected .product-price {
+  color: #fff;
+}
+
+/* Panel Central - Teclado y Monedas */
+.control-panel {
+  background: linear-gradient(145deg, #2d3436, #1e272e);
+  border-radius: 20px;
+  padding: 25px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+  border: 3px solid #ffd700;
+}
+
+.display-panel {
+  background: #000;
+  border: 3px solid #333;
+  border-radius: 10px;
+  padding: 15px;
+  margin-bottom: 20px;
+  font-family: 'Courier New', monospace;
+  min-height: 120px;
+}
+
+.display-time {
+  color: #888;
+  font-size: 0.8em;
+  margin-bottom: 5px;
+}
+
+.display-state {
+  color: #00ff00;
+  font-size: 1.8em;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.display-message {
+  color: #ffd700;
+  font-size: 0.9em;
+  line-height: 1.4;
+}
+
+.display-code {
+  color: #ff6b6b;
+  font-size: 1.2em;
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+/* Teclado Alfanumérico */
+.keypad-section {
+  margin-bottom: 20px;
+}
+
+.keypad-title {
+  font-size: 0.9em;
+  font-weight: bold;
+  margin-bottom: 10px;
+  color: #aaa;
+  text-transform: uppercase;
+  text-align: center;
+}
+
+.keypad-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 15px;
+}
+
+.key-btn {
+  background: linear-gradient(145deg, #4a4a4a, #3a3a3a);
+  border: 2px solid #666;
+  border-radius: 8px;
+  padding: 15px;
+  color: white;
+  font-weight: bold;
+  font-size: 1.1em;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.key-btn:hover {
+  background: linear-gradient(145deg, #00b894, #00a381);
+  border-color: #00b894;
+  transform: translateY(-2px);
+}
+
+.key-btn:active {
+  transform: translateY(0);
+}
+
+.key-btn.letter {
+  background: linear-gradient(145deg, #e94560, #c0392b);
+  border-color: #e94560;
+}
+
+.key-btn.letter:hover {
+  background: linear-gradient(145deg, #ff6b6b, #e94560);
+}
+
+.key-btn.clear {
+  background: linear-gradient(145deg, #ffd700, #f0c000);
+  border-color: #ffd700;
+  color: #000;
+}
+
+/* Monedas */
+.coins-section {
+  margin-bottom: 20px;
+}
+
+.coins-title {
+  font-size: 0.9em;
+  font-weight: bold;
+  margin-bottom: 10px;
+  color: #aaa;
+  text-transform: uppercase;
+  text-align: center;
+}
+
+.coins-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.coin-btn {
+  background: linear-gradient(145deg, #ffd700, #f0c000);
+  border: 3px solid #daa520;
+  border-radius: 50%;
+  width: 60px;
+  height: 60px;
+  margin: 0 auto;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 0.9em;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+}
+
+.coin-btn:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 15px rgba(255, 215, 0, 0.5);
+}
+
+.coin-btn:active {
+  transform: scale(0.95);
+}
+
+/* Botón Devolución */
+.return-btn {
+  width: 100%;
+  padding: 12px;
+  background: linear-gradient(135deg, #e94560, #c0392b);
+  border: none;
+  border-radius: 10px;
+  color: white;
+  font-weight: bold;
+  font-size: 0.9em;
+  cursor: pointer;
+  transition: all 0.3s;
+  margin-bottom: 10px;
+}
+
+.return-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(233, 69, 96, 0.4);
+}
+
+.reset-btn {
+  width: 100%;
+  padding: 12px;
+  background: linear-gradient(135deg, #636e72, #2d3436);
+  border: none;
+  border-radius: 10px;
+  color: white;
+  font-weight: bold;
+  font-size: 0.9em;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.reset-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(99, 110, 114, 0.4);
+}
+
+/* Panel Grafo */
+.graph-panel {
+  background: linear-gradient(145deg, #2d3436, #1e272e);
+  border-radius: 20px;
+  padding: 25px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+  border: 3px solid #00b894;
+  display: none;
+}
+
+.graph-panel.visible {
+  display: block;
+}
+
+.graph-tabs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 15px;
+  flex-wrap: wrap;
+}
+
+.tab-btn {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: all 0.3s;
+  background: #3d3d3d;
+  color: #aaa;
+  font-size: 0.9em;
+}
+
+.tab-btn.active {
+  background: linear-gradient(135deg, #00b894, #00cec9);
+  color: white;
+}
+
+.tab-btn:hover {
+  transform: translateY(-2px);
+}
+
+.graph-controls {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 15px;
+  align-items: center;
+}
+
+.ctrl-btn {
+  background: #3d3d3d;
+  border: 2px solid #555;
+  color: white;
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1.2em;
+  font-weight: bold;
+  transition: all 0.2s;
+}
+
+.ctrl-btn:hover {
+  background: #00b894;
+  border-color: #00b894;
+}
+
+.center-btn {
+  background: linear-gradient(135deg, #e94560, #ff6b6b);
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.center-btn:hover {
+  transform: translateY(-2px);
+}
+
+.graph-canvas-container {
+  background: #1a1a1a;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 2px solid #333;
+  position: relative;
+  height: 650px;
+}
+
+#graphCanvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.graph-legend {
+  margin-top: 15px;
+  padding: 12px;
+  background: rgba(0, 184, 148, 0.1);
+  border-left: 4px solid #00b894;
+  border-radius: 8px;
+  font-size: 0.85em;
+  color: #ccc;
+}
+
+.graph-legend strong {
+  color: #00b894;
+}
+
+/* Tabla de Transición */
+.transition-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+  font-size: 0.85em;
+}
+
+.transition-table th,
+.transition-table td {
+  border: 1px solid #555;
+  padding: 8px;
+  text-align: center;
+}
+
+.transition-table th {
+  background: #00b894;
+  color: white;
+}
+
+.transition-table td {
+  background: #2d2d2d;
+}
+
+.transition-table tr:hover td {
+  background: #3d3d3d;
+}
+
+/* Definición Formal */
+.formal-def {
+  background: #2d2d2d;
+  padding: 20px;
+  border-radius: 10px;
+  font-family: 'Courier New', monospace;
+  line-height: 1.8;
+  font-size: 0.9em;
+}
+
+.formal-def h3 {
+  color: #00b894;
+  margin-bottom: 10px;
+}
+
+.formal-def .math {
+  color: #ffd700;
+  font-size: 1.1em;
+}
+
+/* Vuelto */
+.change-display {
+  background: linear-gradient(135deg, #00b894, #00a381);
+  padding: 15px;
+  border-radius: 10px;
+  text-align: center;
+  margin-top: 15px;
+  display: none;
+  animation: slideUp 0.5s;
+}
+
+.change-display.active {
+  display: block;
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.change-amount {
+  font-size: 1.8em;
+  font-weight: bold;
+  color: white;
+}
+
+.collect-btn {
+  width: 100%;
+  padding: 14px;
+  background: linear-gradient(135deg, #ffd700, #f0c000);
+  border: none;
+  border-radius: 10px;
+  color: #000;
+  font-weight: bold;
+  font-size: 1em;
+  cursor: pointer;
+  transition: all 0.3s;
+  margin-top: 12px;
+  display: none;
+  animation: pulse 1.5s infinite;
+}
+
+.collect-btn.active {
+  display: block;
+}
+
+.collect-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(255, 215, 0, 0.5);
+}
+
+@keyframes pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0.4); }
+  50% { box-shadow: 0 0 20px 5px rgba(255, 215, 0, 0.6); }
+}
+
+@media (max-width: 1400px) {
+  .main-container.show-graph {
+    grid-template-columns: 1fr 1fr;
+  }
+  .graph-panel {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 1000px) {
+  .main-container {
+    grid-template-columns: 1fr;
+  }
+  .main-container.show-graph {
+    grid-template-columns: 1fr;
+  }
+  .products-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>🤖 EXPENDEDORA MEF</h1>
+  <button class="toggle-btn" onclick="toggleGraph()">📊 Mostrar/Ocultar Grafo</button>
+</div>
+
+<div class="main-container" id="mainContainer">
+  <!-- Panel de Productos -->
+  <div class="products-panel" role="region" aria-label="Panel de productos">
+    <div class="shelf">
+      <div class="shelf-title">Estante A - Bebidas S/ 2.50</div>
+      <div class="products-grid">
+        <div class="product-card" id="prod-A1" onclick="selectByCode('A1')" role="button" aria-label="Producto A1: Agua Cielo, S/ 2.50" style="background-image: url('imagenes/Agua/cielo-sin-gas2.png')">
+          <span class="product-code">A1</span>
+          <div class="product-icon">💧</div>
+          <div class="product-name">Agua Cielo</div>
+          <div class="product-desc">625 ml</div>
+          <div class="product-price">S/ 2.50</div>
+        </div>
+        <div class="product-card" id="prod-A2" onclick="selectByCode('A2')" role="button" aria-label="Producto A2: Jugo Durazno, S/ 2.50" style="background-image: url('imagenes/Agua/durazno-600x600.png')">
+          <span class="product-code">A2</span>
+          <div class="product-icon">🍑</div>
+          <div class="product-name">Jugo Durazno</div>
+          <div class="product-desc">300 ml</div>
+          <div class="product-price">S/ 2.50</div>
+        </div>
+        <div class="product-card" id="prod-A3" onclick="selectByCode('A3')" role="button" aria-label="Producto A3: Jugo Mango, S/ 2.50" style="background-image: url('imagenes/Agua/mango-2-600x600.png')">
+          <span class="product-code">A3</span>
+          <div class="product-icon">🥭</div>
+          <div class="product-name">Jugo Mango</div>
+          <div class="product-desc">300 ml</div>
+          <div class="product-price">S/ 2.50</div>
+        </div>
+        <div class="product-card" id="prod-A4" onclick="selectByCode('A4')" role="button" aria-label="Producto A4: Jugo Naranja, S/ 2.50" style="background-image: url('imagenes/Agua/naranja-600x600.png')">
+          <span class="product-code">A4</span>
+          <div class="product-icon">🍊</div>
+          <div class="product-name">Jugo Naranja</div>
+          <div class="product-desc">300 ml</div>
+          <div class="product-price">S/ 2.50</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="shelf">
+      <div class="shelf-title">Estante B - Galletas S/ 5.00</div>
+      <div class="products-grid">
+        <div class="product-card" id="prod-B1" onclick="selectByCode('B1')" role="button" aria-label="Producto B1: Galleta Coco, S/ 5.00" style="background-image: url('imagenes/Galletas/Galleta-coco-1-600x600.png')">
+          <span class="product-code">B1</span>
+          <div class="product-icon">🥥</div>
+          <div class="product-name">Galleta Coco</div>
+          <div class="product-desc">6 u</div>
+          <div class="product-price">S/ 5.00</div>
+        </div>
+        <div class="product-card" id="prod-B2" onclick="selectByCode('B2')" role="button" aria-label="Producto B2: Galleta Kiwicha, S/ 5.00" style="background-image: url('imagenes/Galletas/Galleta-kiwicha-int-600x600.png')">
+          <span class="product-code">B2</span>
+          <div class="product-icon">🌾</div>
+          <div class="product-name">Galleta Kiwicha</div>
+          <div class="product-desc">6 u</div>
+          <div class="product-price">S/ 5.00</div>
+        </div>
+        <div class="product-card" id="prod-B3" onclick="selectByCode('B3')" role="button" aria-label="Producto B3: Galleta Naranja, S/ 5.00" style="background-image: url('imagenes/Galletas/Galleta-naranja-1-600x600.png')">
+          <span class="product-code">B3</span>
+          <div class="product-icon">🍊</div>
+          <div class="product-name">Galleta Naranja</div>
+          <div class="product-desc">6 u</div>
+          <div class="product-price">S/ 5.00</div>
+        </div>
+        <div class="product-card" id="prod-B4" onclick="selectByCode('B4')" role="button" aria-label="Producto B4: Pan Integral, S/ 5.00" style="background-image: url('imagenes/Galletas/Pan-integ-mediano-600x600.png')">
+          <span class="product-code">B4</span>
+          <div class="product-icon">🍞</div>
+          <div class="product-name">Pan Integral</div>
+          <div class="product-desc">Mediano</div>
+          <div class="product-price">S/ 5.00</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="shelf">
+      <div class="shelf-title">Estante C - Snacks</div>
+      <div class="products-grid">
+        <div class="product-card" id="prod-C1" onclick="selectByCode('C1')" role="button" aria-label="Producto C1: Palitos Clásicos, S/ 3.00" style="background-image: url('imagenes/Snaks/Palitos-clasicos-600x600.png')">
+          <span class="product-code">C1</span>
+          <div class="product-icon"></div>
+          <div class="product-name">Palitos Clásicos</div>
+          <div class="product-desc">60 g</div>
+          <div class="product-price">S/ 3.00</div>
+        </div>
+        <div class="product-card" id="prod-C2" onclick="selectByCode('C2')" role="button" aria-label="Producto C2: Palitos Especias, S/ 3.00" style="background-image: url('imagenes/Snaks/Palitos-de-Especias-600x600.png')">
+          <span class="product-code">C2</span>
+          <div class="product-icon">🌿</div>
+          <div class="product-name">Palitos Especias</div>
+          <div class="product-desc">60 g</div>
+          <div class="product-price">S/ 3.00</div>
+        </div>
+        <div class="product-card" id="prod-C3" onclick="selectByCode('C3')" role="button" aria-label="Producto C3: Tostada Blanca, S/ 4.00" style="background-image: url('imagenes/Snaks/Tosatada-blanca-600x600.png')">
+          <span class="product-code">C3</span>
+          <div class="product-icon"></div>
+          <div class="product-name">Tostada Blanca</div>
+          <div class="product-desc">6 u</div>
+          <div class="product-price">S/ 4.00</div>
+        </div>
+        <div class="product-card" id="prod-C4" onclick="selectByCode('C4')" role="button" aria-label="Producto C4: Tostada Integral, S/ 4.00" style="background-image: url('imagenes/Snaks/Tosatada-integ-600x600.png')">
+          <span class="product-code">C4</span>
+          <div class="product-icon"></div>
+          <div class="product-name">Tostada Integral</div>
+          <div class="product-desc">6 u</div>
+          <div class="product-price">S/ 4.00</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Panel Central - Teclado y Monedas -->
+  <div class="control-panel" role="region" aria-label="Panel de control">
+    <div class="display-panel" role="status" aria-live="polite" aria-label="Pantalla de la expendedora">
+      <div class="display-time" id="displayTime">12:00:00</div>
+      <div class="display-state" id="displayState">S/ 0.00</div>
+      <div class="display-code" id="displayCode">Código: --</div>
+      <div class="display-message" id="displayMessage">Inserte monedas o ingrese código</div>
+    </div>
+
+    <div class="keypad-section" role="group" aria-label="Teclado de selección de producto">
+      <div class="keypad-title">Teclado de Selección</div>
+      <div class="keypad-grid">
+        <button class="key-btn letter" onclick="pressKey('A')" aria-label="Tecla A">A</button>
+        <button class="key-btn letter" onclick="pressKey('B')" aria-label="Tecla B">B</button>
+        <button class="key-btn letter" onclick="pressKey('C')" aria-label="Tecla C">C</button>
+        <button class="key-btn" onclick="pressKey('1')" aria-label="Tecla 1">1</button>
+        <button class="key-btn" onclick="pressKey('2')" aria-label="Tecla 2">2</button>
+        <button class="key-btn" onclick="pressKey('3')" aria-label="Tecla 3">3</button>
+        <button class="key-btn" onclick="pressKey('4')" aria-label="Tecla 4">4</button>
+        <button class="key-btn clear" onclick="clearCode()" aria-label="Borrar código"></button>
+        <button class="key-btn" onclick="confirmCode()" style="background: linear-gradient(145deg, #00b894, #00a381); border-color: #00b894;" aria-label="Confirmar código">✓</button>
+      </div>
+    </div>
+
+    <div class="coins-section" role="group" aria-label="Ranura de monedas">
+      <div class="coins-title">Ranura de Monedas (S/)</div>
+      <div class="coins-grid">
+        <button class="coin-btn" onclick="insertCoin(0.10)" aria-label="Insertar moneda de 10 centavos">10¢</button>
+        <button class="coin-btn" onclick="insertCoin(0.20)" aria-label="Insertar moneda de 20 centavos">20¢</button>
+        <button class="coin-btn" onclick="insertCoin(0.50)" aria-label="Insertar moneda de 50 centavos">50¢</button>
+        <button class="coin-btn" onclick="insertCoin(1)" aria-label="Insertar moneda de 1 sol">S/1</button>
+        <button class="coin-btn" onclick="insertCoin(2)" aria-label="Insertar moneda de 2 soles">S/2</button>
+        <button class="coin-btn" onclick="insertCoin(5)" aria-label="Insertar moneda de 5 soles">S/5</button>
+      </div>
+    </div>
+
+    <button class="return-btn" onclick="returnCoins()" aria-label="Devolver monedas insertadas">🔄 Devolución de monedas</button>
+    <button class="reset-btn" onclick="resetMachine()" aria-label="Reiniciar máquina expendedora">🔁 Reiniciar Máquina</button>
+
+    <div class="change-display" id="changeDisplay">
+      <div>🔄 VUELTO</div>
+      <div class="change-amount" id="changeAmount">S/ 0.00</div>
+    </div>
+    <button class="collect-btn" id="collectBtn" onclick="collectChange()" aria-label="Recoger vuelto y producto, y reiniciar máquina"> Recoger Vuelto y Producto</button>
+  </div>
+
+  <!-- Panel Grafo -->
+  <div class="graph-panel" id="graphPanel" role="region" aria-label="Visualización del grafo FSM">
+    <div class="graph-tabs" role="tablist" aria-label="Pestañas de visualización FSM">
+      <button class="tab-btn active" onclick="switchTab('graph', this)" role="tab" aria-selected="true" aria-label="Ver grafo FSM">📈 Grafo FSM</button>
+      <button class="tab-btn" onclick="switchTab('table', this)" role="tab" aria-selected="false" aria-label="Ver tabla de transiciones">📋 Tabla</button>
+      <button class="tab-btn" onclick="switchTab('formal', this)" role="tab" aria-selected="false" aria-label="Ver definición formal">📐 Def. Formal</button>
+    </div>
+    
+    <div class="graph-controls">
+      <button class="ctrl-btn" onclick="zoomIn()">+</button>
+      <button class="ctrl-btn" onclick="zoomOut()">−</button>
+      <button class="center-btn" onclick="centerGraph()">Centrar</button>
+    </div>
+    
+    <div id="tabContent">
+      <div id="tabGraph">
+        <div class="graph-canvas-container">
+          <canvas id="graphCanvas"></canvas>
+        </div>
+        <div class="graph-legend">
+          <strong>Colores de flechas:</strong> Cada moneda tiene un color único. <span style="color:#f97316;">Naranja</span> = tramo ya recorrido con el saldo actual. <span style="color:#16a34a;">Verde</span> = llega al estado de aceptación (precio del producto). El nodo con doble borde verde es el estado objetivo.
+        </div>
+      </div>
+      <div id="tabTable" style="display:none;"></div>
+      <div id="tabFormal" style="display:none;"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const products = {
+  'A1': { name: 'Agua Cielo', icon: '💧', price: 2.50, desc: '625 ml', image: 'imagenes/Agua/cielo-sin-gas2.png' },
+  'A2': { name: 'Jugo Durazno', icon: '🍑', price: 2.50, desc: '300 ml', image: 'imagenes/Agua/durazno-600x600.png' },
+  'A3': { name: 'Jugo Mango', icon: '🥭', price: 2.50, desc: '300 ml', image: 'imagenes/Agua/mango-2-600x600.png' },
+  'A4': { name: 'Jugo Naranja', icon: '🍊', price: 2.50, desc: '300 ml', image: 'imagenes/Agua/naranja-600x600.png' },
+  'B1': { name: 'Galleta Coco', icon: '🥥', price: 5.00, desc: '6 u', image: 'imagenes/Galletas/Galleta-coco-1-600x600.png' },
+  'B2': { name: 'Galleta Kiwicha', icon: '🌾', price: 5.00, desc: '6 u', image: 'imagenes/Galletas/Galleta-kiwicha-int-600x600.png' },
+  'B3': { name: 'Galleta Naranja', icon: '🍊', price: 5.00, desc: '6 u', image: 'imagenes/Galletas/Galleta-naranja-1-600x600.png' },
+  'B4': { name: 'Pan Integral', icon: '🍞', price: 5.00, desc: 'Mediano', image: 'imagenes/Galletas/Pan-integ-mediano-600x600.png' },
+  'C1': { name: 'Palitos Clásicos', icon: '', price: 3.00, desc: '60 g', image: 'imagenes/Snaks/Palitos-clasicos-600x600.png' },
+  'C2': { name: 'Palitos Especias', icon: '🌿', price: 3.00, desc: '60 g', image: 'imagenes/Snaks/Palitos-de-Especias-600x600.png' },
+  'C3': { name: 'Tostada Blanca', icon: '', price: 4.00, desc: '6 u', image: 'imagenes/Snaks/Tosatada-blanca-600x600.png' },
+  'C4': { name: 'Tostada Integral', icon: '', price: 4.00, desc: '6 u', image: 'imagenes/Snaks/Tosatada-integ-600x600.png' }
+};
+
+const coins = [0.10, 0.20, 0.50, 1, 2, 5];
+
+let state = {
+  credit: 0,
+  selectedProduct: null,
+  selectedCode: null,
+  codeBuffer: '',
+  completed: false
+};
+
+let zoom = 1;
+let currentTab = 'graph';
+
+function getDeliveryThreshold() {
+  if (state.selectedProduct) return state.selectedProduct.price;
+  return 2.00;
+}
+
+function init() {
+  updateDisplay();
+  drawGraph();
+  updateTime();
+  setInterval(updateTime, 1000);
+}
+
+function updateTime() {
+  const now = new Date();
+  document.getElementById('displayTime').textContent = now.toLocaleTimeString();
+}
+
+function pressKey(key) {
+  if (state.codeBuffer.length < 2) {
+    state.codeBuffer += key;
+    document.getElementById('displayCode').textContent = `Código: ${state.codeBuffer}`;
+  }
+}
+
+function clearCode() {
+  state.codeBuffer = '';
+  document.getElementById('displayCode').textContent = 'Código: --';
+}
+
+function confirmCode() {
+  if (state.codeBuffer.length === 2) {
+    selectByCode(state.codeBuffer);
+    clearCode();
+  } else {
+    document.getElementById('displayMessage').textContent = '⚠️ Ingrese código de 2 caracteres (ej: A1)';
+  }
+}
+
+function selectByCode(code) {
+  if (!products[code]) {
+    document.getElementById('displayMessage').textContent = `⚠️ Código ${code} no existe`;
+    return;
+  }
+
+  if (state.completed) {
+    document.getElementById('displayMessage').textContent = '⚠️ Recoja su vuelto primero';
+    return;
+  }
+
+  const product = products[code];
+  
+  document.querySelectorAll('.product-card').forEach(c => c.classList.remove('selected'));
+  document.getElementById(`prod-${code}`).classList.add('selected');
+  
+  state.selectedProduct = product;
+  state.selectedCode = code;
+  
+  document.getElementById('displayCode').textContent = `Código: ${code}`;
+  
+  if (state.credit >= product.price) {
+    dispenseProduct();
+  } else {
+    const falta = product.price - state.credit;
+    document.getElementById('displayMessage').textContent = `${product.name} - Falta: S/ ${falta.toFixed(2)}`;
+  }
+  
+  updateDisplay();
+  drawGraph();
+}
+
+function insertCoin(value) {
+  if (state.completed) {
+    document.getElementById('displayMessage').textContent = '⚠️ Recoja su vuelto primero';
+    return;
+  }
+  
+  state.credit += value;
+  updateDisplay();
+  
+  if (state.selectedProduct && state.credit >= state.selectedProduct.price) {
+    dispenseProduct();
+  } else {
+    const msg = state.selectedProduct 
+      ? `${state.selectedProduct.name} - Falta: S/ ${(state.selectedProduct.price - state.credit).toFixed(2)}`
+      : `Depositado: S/ ${state.credit.toFixed(2)}`;
+    document.getElementById('displayMessage').textContent = msg;
+  }
+  
+  drawGraph();
+}
+
+function dispenseProduct() {
+  if (!state.selectedProduct) return;
+  
+  const change = state.credit - state.selectedProduct.price;
+  state.completed = true;
+  
+  document.getElementById('displayMessage').textContent = ` ${state.selectedProduct.name} entregado!`;
+  
+  document.getElementById('changeDisplay').classList.add('active');
+  document.getElementById('changeAmount').textContent = `S/ ${change.toFixed(2)}`;
+  document.getElementById('collectBtn').classList.add('active');
+  document.getElementById('displayMessage').textContent += ` | Recoja su vuelto y producto`;
+  
+  updateDisplay();
+  drawGraph();
+}
+  
+  updateDisplay();
+  drawGraph();
+}
+
+function updateDisplay() {
+  document.getElementById('displayState').textContent = `S/ ${state.credit.toFixed(2)}`;
+}
+
+function returnCoins() {
+  if (state.credit === 0) {
+    document.getElementById('displayMessage').textContent = '⚠️ No hay monedas';
+    return;
+  }
+  
+  state.completed = true;
+  document.getElementById('changeDisplay').classList.add('active');
+  document.getElementById('changeAmount').textContent = `S/ ${state.credit.toFixed(2)}`;
+  document.getElementById('collectBtn').classList.add('active');
+  document.getElementById('displayMessage').textContent = `💵 Recoja su devolución`;
+  
+  updateDisplay();
+  drawGraph();
+}
+
+function collectChange() {
+  document.getElementById('collectBtn').classList.remove('active');
+  resetMachine();
+}
+
+function resetMachine() {
+  state = {
+    credit: 0,
+    selectedProduct: null,
+    selectedCode: null,
+    codeBuffer: '',
+    completed: false
+  };
+  
+  document.querySelectorAll('.product-card').forEach(c => c.classList.remove('selected'));
+  document.getElementById('changeDisplay').classList.remove('active');
+  document.getElementById('collectBtn').classList.remove('active');
+  document.getElementById('displayCode').textContent = 'Código: --';
+  document.getElementById('displayMessage').textContent = 'Inserte monedas o ingrese código';
+  
+  updateDisplay();
+  drawGraph();
+}
+
+function toggleGraph() {
+  const container = document.getElementById('mainContainer');
+  const panel = document.getElementById('graphPanel');
+  container.classList.toggle('show-graph');
+  panel.classList.toggle('visible');
+  setTimeout(drawGraph, 100);
+}
+
+function switchTab(tab, btn) {
+  currentTab = tab;
+  document.querySelectorAll('.tab-btn').forEach(b => {
+    b.classList.remove('active');
+    b.setAttribute('aria-selected', 'false');
+  });
+  btn.classList.add('active');
+  btn.setAttribute('aria-selected', 'true');
+  renderTabContent();
+}
+
+function renderTabContent() {
+  const tabGraph = document.getElementById('tabGraph');
+  const tabTable = document.getElementById('tabTable');
+  const tabFormal = document.getElementById('tabFormal');
+  
+  tabGraph.style.display = currentTab === 'graph' ? 'block' : 'none';
+  tabTable.style.display = currentTab === 'table' ? 'block' : 'none';
+  tabFormal.style.display = currentTab === 'formal' ? 'block' : 'none';
+  
+  if (currentTab === 'graph') {
+    setTimeout(drawGraph, 50);
+  } else if (currentTab === 'table') {
+    renderTransitionTable();
+  } else if (currentTab === 'formal') {
+    renderFormalDef();
+  }
+}
+
+function renderTransitionTable() {
+  const states = [];
+  for (let i = 0; i <= 50; i++) {
+    states.push(Math.round(i * 0.10 * 100) / 100);
+  }
+  const container = document.getElementById('tabTable');
+  const threshold = getDeliveryThreshold();
+  const productName = state.selectedProduct ? state.selectedProduct.name : 'producto (S/ 2.00)';
+  
+  let html = `<p style="color:#ffd700;margin-bottom:10px;font-size:0.9em;">Umbral de entrega: <strong>S/ ${threshold.toFixed(2)}</strong>${state.selectedProduct ? ' (' + productName + ')' : ' (mínimo)'}</p>`;
+  html += '<div style="overflow-x:auto;"><table class="transition-table"><thead><tr><th>Estado \\ Entrada</th>';
+  coins.forEach(c => html += `<th>S/ ${c.toFixed(2)}</th>`);
+  html += '</tr></thead><tbody>';
+  
+  states.forEach(s => {
+    html += `<tr><td><strong>S/ ${s.toFixed(2)}</strong></td>`;
+    coins.forEach(c => {
+      const next = Math.round((s + c) * 100) / 100;
+      if (next >= threshold) {
+        html += `<td style="background:#e94560;color:white;">ENTREGA${next > threshold ? ' + S/ ' + (next - threshold).toFixed(2) : ''}</td>`;
+      } else {
+        html += `<td>S/ ${next.toFixed(2)}</td>`;
+      }
+    });
+    html += '</tr>';
+  });
+  
+  html += '</tbody></table></div>';
+  container.innerHTML = html;
+}
+
+function renderFormalDef() {
+  const container = document.getElementById('tabFormal');
+  const threshold = getDeliveryThreshold();
+  container.innerHTML = `
+    <div class="formal-def">
+      <h3>Definición Formal de la MEF</h3>
+      <p class="math">M = ⟨Q, Σ, δ, q₀, F⟩</p>
+      <br>
+      <p><strong>Q (Estados):</strong> {S/ 0.00, S/ 0.10, S/ 0.20, ..., S/ 5.00} — 51 estados (incrementos de S/ 0.10)</p>
+      <br>
+      <p><strong>Σ (Alfabeto de entradas):</strong> {0.10, 0.20, 0.50, 1, 2, 5}</p>
+      <br>
+      <p><strong>δ (Función de transición):</strong> δ(q, moneda) = min(q + moneda, S/ 5.00)</p>
+      <br>
+      <p><strong>q₀ (Estado inicial):</strong> S/ 0.00</p>
+      <br>
+      <p><strong>F (Estados aceptables):</strong> {q ∈ Q | q ≥ S/ ${threshold.toFixed(2)}${state.selectedProduct ? ' (precio ' + state.selectedProduct.name + ')' : ' (mínimo S/ 2.00)'}}</p>
+      <br>
+      <p><strong>Salida:</strong> Producto + Vuelto (si q > precio)</p>
+    </div>
+  `;
+}
+
+function drawGraph() {
+  const canvas = document.getElementById('graphCanvas');
+  if (!canvas) return;
+  
+  const ctx = canvas.getContext('2d');
+  const container = canvas.parentElement;
+  canvas.width = container.offsetWidth;
+  canvas.height = container.offsetHeight;
+  
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  
+  const threshold = getDeliveryThreshold();
+  const currentCredit = state.credit;
+  const targetState = Math.round(threshold * 100);
+  
+  const coinColors = {
+    0.10: '#2563eb',
+    0.20: '#7c3aed',
+    0.50: '#16a34a',
+    1: '#db2777',
+    2: '#0891b2',
+    5: '#ca8a04'
+  };
+  
+  const niveles = new Map([[0, 0]]);
+  const cola = [0];
+  
+  while (cola.length > 0) {
+    const estado = cola.shift();
+    const nivel = niveles.get(estado);
+    coins.forEach((moneda) => {
+      const destino = Math.round(Math.min(estado + moneda, threshold) * 100) / 100;
+      if (!niveles.has(destino)) {
+        niveles.set(destino, nivel + 1);
+        if (destino < threshold) cola.push(destino);
+      }
+    });
+  }
+  
+  const estados = Array.from(niveles.keys()).sort((a, b) => a - b);
+  const maxNivel = Math.max(...Array.from(niveles.values()));
+  const columnas = Array.from({ length: maxNivel + 1 }, () => []);
+  estados.forEach((estado) => {
+    columnas[niveles.get(estado)].push(estado);
+  });
+  columnas.forEach((columna) => columna.sort((a, b) => a - b));
+  
+  const margenX = 86 * zoom;
+  const margenY = 92 * zoom;
+  const separacionX = 180 * zoom;
+  const separacionY = 76 * zoom;
+  const puntos = new Map();
+  
+  columnas.forEach((columna, nivel) => {
+    const alturaColumna = (columna.length - 1) * separacionY;
+    const inicioY = margenY + Math.max(0, (canvas.height - margenY - 80 * zoom - alturaColumna) / 2);
+    columna.forEach((estado, fila) => {
+      puntos.set(estado, {
+        estado,
+        x: margenX + nivel * separacionX,
+        y: inicioY + fila * separacionY
+      });
+    });
+  });
+  
+  function drawArrowhead(x, y, angle, color, size) {
+    ctx.save();
+    ctx.fillStyle = color;
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 1.4;
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    ctx.lineTo(x - size * Math.cos(angle - Math.PI / 6), y - size * Math.sin(angle - Math.PI / 6));
+    ctx.lineTo(x - size * 0.45 * Math.cos(angle), y - size * 0.45 * Math.sin(angle));
+    ctx.lineTo(x - size * Math.cos(angle + Math.PI / 6), y - size * Math.sin(angle + Math.PI / 6));
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    ctx.restore();
+  }
+  
+  const nodeRadius = 24 * zoom;
+  
+  estados.forEach((estado) => {
+    coins.forEach((moneda, indiceMoneda) => {
+      const destino = Math.round(Math.min(estado + moneda, threshold) * 100) / 100;
+      if (destino === estado) return;
+      const origen = puntos.get(estado);
+      const puntoDestino = puntos.get(destino);
+      if (!origen || !puntoDestino) return;
+      
+      const dx = puntoDestino.x - origen.x;
+      const dy = puntoDestino.y - origen.y;
+      const distancia = Math.hypot(dx, dy) || 1;
+      const nx = dx / distancia;
+      const ny = dy / distancia;
+      const inicioX = origen.x + nx * (nodeRadius + 2);
+      const inicioY = origen.y + ny * (nodeRadius + 2);
+      const finX = puntoDestino.x - nx * (nodeRadius + 4);
+      const finY = puntoDestino.y - ny * (nodeRadius + 4);
+      
+      const normalX = -ny;
+      const normalY = nx;
+      const curva = ((indiceMoneda % 3) - 1) * 16 * zoom;
+      const medioX = (inicioX + finX) / 2 + normalX * curva;
+      const medioY = (inicioY + finY) / 2 + normalY * curva;
+      
+      const tramoAlcanzado = currentCredit >= destino;
+      const llegaAceptacion = destino >= threshold;
+      const color = tramoAlcanzado ? '#f97316' : llegaAceptacion ? '#16a34a' : coinColors[moneda];
+      
+      ctx.strokeStyle = color;
+      ctx.lineWidth = tramoAlcanzado ? 3.2 : 2;
+      ctx.beginPath();
+      ctx.moveTo(inicioX, inicioY);
+      ctx.quadraticCurveTo(medioX, medioY, finX, finY);
+      ctx.stroke();
+      drawArrowhead(finX, finY, Math.atan2(finY - medioY, finX - medioX), color, 11 * zoom);
+    });
+  });
+  
+  puntos.forEach((punto) => {
+    const aceptacion = punto.estado >= threshold;
+    const activo = Math.abs(punto.estado - currentCredit) < 0.01;
+    const radio = aceptacion ? 27 * zoom : 24 * zoom;
+    
+    if (aceptacion) {
+      ctx.fillStyle = '#ecfdf5';
+      ctx.strokeStyle = '#16a34a';
+      ctx.lineWidth = 2.4;
+      ctx.beginPath();
+      ctx.arc(punto.x, punto.y, radio + 6, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+    }
+    
+    ctx.fillStyle = activo ? '#fef3c7' : aceptacion ? '#dcfce7' : '#ffffff';
+    ctx.strokeStyle = activo ? '#f97316' : aceptacion ? '#16a34a' : '#0f766e';
+    ctx.lineWidth = activo ? 4 : 2.5;
+    ctx.beginPath();
+    ctx.arc(punto.x, punto.y, radio, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = activo ? '#9a3412' : '#134e4a';
+    ctx.font = `bold ${12 * zoom}px Arial`;
+    ctx.fillText(`q${Math.round(punto.estado * 100)}`, punto.x, punto.y - 6);
+    ctx.font = `${9 * zoom}px Arial`;
+    ctx.fillStyle = '#64748b';
+    ctx.fillText(`S/${punto.estado.toFixed(2)}`, punto.x, punto.y + 9);
+  });
+  
+  const inicio = puntos.get(0);
+  if (inicio) {
+    ctx.strokeStyle = '#0ea5e9';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(inicio.x - 52 * zoom, inicio.y);
+    ctx.lineTo(inicio.x - nodeRadius - 2, inicio.y);
+    ctx.stroke();
+    drawArrowhead(inicio.x - nodeRadius - 2, inicio.y, 0, '#0ea5e9', 14 * zoom);
+    ctx.fillStyle = '#0f766e';
+    ctx.font = `bold ${10 * zoom}px Arial`;
+    ctx.textAlign = 'center';
+    ctx.fillText('inicio', inicio.x - 58 * zoom, inicio.y + 20);
+  }
+  
+  ctx.fillStyle = '#475569';
+  ctx.font = `${11 * zoom}px Arial`;
+  ctx.textAlign = 'left';
+  ctx.fillText(`Objetivo: q${targetState} (S/${threshold.toFixed(2)})`, 16, 24);
+  ctx.fillStyle = '#64748b';
+  ctx.font = `${10 * zoom}px Arial`;
+  ctx.fillText('Grafo por niveles: cada flecha muestra una moneda de entrada.', 16, 42);
+  
+  const leyendaY = canvas.height - 18;
+  ctx.fillStyle = '#475569';
+  ctx.font = `${10 * zoom}px Arial`;
+  ctx.fillText('Naranja = tramo recorrido | Verde = llega a aceptación', 16, leyendaY);
+}
+
+function zoomIn() {
+  zoom = Math.min(zoom + 0.1, 2);
+  drawGraph();
+}
+
+function zoomOut() {
+  zoom = Math.max(zoom - 0.1, 0.5);
+  drawGraph();
+}
+
+function centerGraph() {
+  zoom = 1;
+  drawGraph();
+}
+
+window.onload = init;
+window.onresize = () => { if (currentTab === 'graph') drawGraph(); };
+</script>
+</body>
+</html>
+ 
