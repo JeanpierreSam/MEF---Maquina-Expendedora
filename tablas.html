@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tablas y Grafos - Expendedora MEF</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'Segoe UI', Tahoma, sans-serif;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  min-height: 100vh;
+  padding: 20px;
+  color: #fff;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.header h1 {
+  font-size: 2em;
+  background: linear-gradient(90deg, #e94560, #ff6b6b);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-weight: 900;
+  letter-spacing: 2px;
+}
+
+.nav-btn {
+  background: linear-gradient(135deg, #00b894, #00cec9);
+  border: none;
+  padding: 12px 24px;
+  border-radius: 25px;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+  font-size: 1em;
+  transition: all 0.3s;
+  box-shadow: 0 4px 15px rgba(0, 206, 201, 0.4);
+  text-decoration: none;
+  display: inline-block;
+}
+
+.nav-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 206, 201, 0.6);
+}
+
+.price-section {
+  background: linear-gradient(145deg, #2d3436, #1e272e);
+  border-radius: 20px;
+  padding: 25px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+  border: 3px solid #e94560;
+  margin-bottom: 30px;
+}
+
+.price-section h2 {
+  color: #00b894;
+  font-size: 1.5em;
+  margin-bottom: 5px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.price-section .price-subtitle {
+  color: #ffd700;
+  font-size: 0.95em;
+  margin-bottom: 20px;
+}
+
+.graph-container {
+  background: #1a1a1a;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 2px solid #333;
+  position: relative;
+  height: 500px;
+  margin-bottom: 15px;
+  cursor: grab;
+  user-select: none;
+}
+
+.graph-container:active {
+  cursor: grabbing;
+}
+
+.graph-pan-inner {
+  transform-origin: 0 0;
+  width: 100%;
+  height: 100%;
+}
+
+.graph-container canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.pan-hint {
+  position: absolute;
+  bottom: 8px;
+  right: 12px;
+  background: rgba(0,0,0,0.6);
+  color: #aaa;
+  font-size: 0.75em;
+  padding: 4px 10px;
+  border-radius: 6px;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.graph-legend {
+  padding: 12px;
+  background: rgba(0, 184, 148, 0.1);
+  border-left: 4px solid #00b894;
+  border-radius: 8px;
+  font-size: 0.85em;
+  color: #ccc;
+  margin-bottom: 20px;
+}
+
+.graph-legend strong {
+  color: #00b894;
+}
+
+.table-container {
+  overflow-x: auto;
+  margin-bottom: 20px;
+}
+
+.transition-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8em;
+}
+
+.transition-table th,
+.transition-table td {
+  border: 1px solid #555;
+  padding: 6px 8px;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.transition-table th {
+  background: #00b894;
+  color: white;
+  position: sticky;
+  top: 0;
+}
+
+.transition-table td {
+  background: #2d2d2d;
+}
+
+.transition-table tr:hover td {
+  background: #3d3d3d;
+}
+
+.transition-table .accept-cell {
+  background: #e94560 !important;
+  color: white;
+}
+
+.formal-section {
+  background: linear-gradient(145deg, #2d3436, #1e272e);
+  border-radius: 20px;
+  padding: 25px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+  border: 3px solid #ffd700;
+  margin-bottom: 30px;
+}
+
+.formal-section h2 {
+  color: #ffd700;
+  font-size: 1.5em;
+  margin-bottom: 15px;
+}
+
+.formal-def {
+  background: #2d2d2d;
+  padding: 20px;
+  border-radius: 10px;
+  font-family: 'Courier New', monospace;
+  line-height: 1.8;
+  font-size: 0.9em;
+}
+
+.formal-def h3 {
+  color: #00b894;
+  margin-bottom: 10px;
+}
+
+.formal-def .math {
+  color: #ffd700;
+  font-size: 1.1em;
+}
+
+.product-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 15px;
+}
+
+.product-tag {
+  background: rgba(0, 184, 148, 0.2);
+  border: 1px solid #00b894;
+  border-radius: 6px;
+  padding: 4px 12px;
+  font-size: 0.85em;
+  color: #00b894;
+}
+
+@media (max-width: 768px) {
+  .header { flex-direction: column; gap: 10px; }
+  .header h1 { font-size: 1.4em; }
+  .graph-container { height: 400px; }
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>TABLAS Y GRAFOS - MEF</h1>
+  <a href="index.html" class="nav-btn">Volver a la Expendedora</a>
+</div>
+
+<div id="priceSections"></div>
+
+<div class="formal-section">
+  <h2>Definicion Formal de la MEF</h2>
+  <div class="formal-def">
+    <h3>M = (Q, Sigma, delta, q0, F)</h3>
+    <br>
+    <p><strong>Q (Estados):</strong> {S/ 0.00, S/ 0.10, S/ 0.20, ..., S/ 5.00} -- 51 estados (incrementos de S/ 0.10)</p>
+    <br>
+    <p><strong>Sigma (Alfabeto de entradas):</strong> {0.10, 0.20, 0.50, 1, 2, 5}</p>
+    <br>
+    <p><strong>delta (Funcion de transicion):</strong> delta(q, moneda) = min(q + moneda, S/ 5.00)</p>
+    <br>
+    <p><strong>q0 (Estado inicial):</strong> S/ 0.00</p>
+    <br>
+    <p><strong>F (Estados aceptables):</strong> Depende del producto seleccionado. q >= precio del producto.</p>
+    <br>
+    <p><strong>Salida:</strong> Producto + Vuelto (si q > precio)</p>
+  </div>
+</div>
+
+<script>
+const products = {
+  'A1': { name: 'Agua Cielo', price: 2.50, desc: '625 ml' },
+  'A2': { name: 'Jugo Durazno', price: 2.50, desc: '300 ml' },
+  'A3': { name: 'Jugo Mango', price: 2.50, desc: '300 ml' },
+  'A4': { name: 'Jugo Naranja', price: 2.50, desc: '300 ml' },
+  'B1': { name: 'Galleta Coco', price: 5.00, desc: '6 u' },
+  'B2': { name: 'Galleta Kiwicha', price: 5.00, desc: '6 u' },
+  'B3': { name: 'Galleta Naranja', price: 5.00, desc: '6 u' },
+  'B4': { name: 'Pan Integral', price: 5.00, desc: 'Mediano' },
+  'C1': { name: 'Palitos Clasicos', price: 3.00, desc: '60 g' },
+  'C2': { name: 'Palitos Especias', price: 3.00, desc: '60 g' },
+  'C3': { name: 'Tostada Blanca', price: 4.00, desc: '6 u' },
+  'C4': { name: 'Tostada Integral', price: 4.00, desc: '6 u' }
+};
+
+const coins = [0.10, 0.20, 0.50, 1, 2, 5];
+
+const coinColors = {
+  0.10: '#2563eb',
+  0.20: '#7c3aed',
+  0.50: '#16a34a',
+  1: '#db2777',
+  2: '#0891b2',
+  5: '#ca8a04'
+};
+
+const prices = [2.50, 3.00, 4.00, 5.00];
+
+function getProductsByPrice(price) {
+  return Object.values(products).filter(p => p.price === price);
+}
+
+function formatMoney(val) {
+  return 'S/ ' + val.toFixed(2);
+}
+
+function buildGraph(canvas, threshold) {
+  const ctx = canvas.getContext('2d');
+  const container = canvas.parentElement;
+  canvas.width = container.offsetWidth;
+  canvas.height = container.offsetHeight;
+
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  const niveles = new Map([[0, 0]]);
+  const cola = [0];
+
+  while (cola.length > 0) {
+    const estado = cola.shift();
+    const nivel = niveles.get(estado);
+    coins.forEach((moneda) => {
+      const destino = Math.round(Math.min(estado + moneda, threshold) * 100) / 100;
+      if (!niveles.has(destino)) {
+        niveles.set(destino, nivel + 1);
+        if (destino < threshold) cola.push(destino);
+      }
+    });
+  }
+
+  const estados = Array.from(niveles.keys()).sort((a, b) => a - b);
+  const maxNivel = Math.max(...Array.from(niveles.values()));
+  const columnas = Array.from({ length: maxNivel + 1 }, () => []);
+  estados.forEach((estado) => {
+    columnas[niveles.get(estado)].push(estado);
+  });
+  columnas.forEach((columna) => columna.sort((a, b) => a - b));
+
+  const zoom = 0.85;
+  const margenX = 86 * zoom;
+  const margenY = 80 * zoom;
+  const separacionX = 160 * zoom;
+  const separacionY = 68 * zoom;
+  const puntos = new Map();
+
+  columnas.forEach((columna, nivel) => {
+    const alturaColumna = (columna.length - 1) * separacionY;
+    const inicioY = margenY + Math.max(0, (canvas.height - margenY - 70 * zoom - alturaColumna) / 2);
+    columna.forEach((estado, fila) => {
+      puntos.set(estado, {
+        estado: estado,
+        x: margenX + nivel * separacionX,
+        y: inicioY + fila * separacionY
+      });
+    });
+  });
+
+  function drawArrowhead(x, y, angle, color, size) {
+    ctx.save();
+    ctx.fillStyle = color;
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    ctx.lineTo(x - size * Math.cos(angle - Math.PI / 6), y - size * Math.sin(angle - Math.PI / 6));
+    ctx.lineTo(x - size * 0.45 * Math.cos(angle), y - size * 0.45 * Math.sin(angle));
+    ctx.lineTo(x - size * Math.cos(angle + Math.PI / 6), y - size * Math.sin(angle + Math.PI / 6));
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  const nodeRadius = 22 * zoom;
+
+  estados.forEach((estado) => {
+    coins.forEach((moneda, indiceMoneda) => {
+      const destino = Math.round(Math.min(estado + moneda, threshold) * 100) / 100;
+      if (destino === estado) return;
+      const origen = puntos.get(estado);
+      const puntoDestino = puntos.get(destino);
+      if (!origen || !puntoDestino) return;
+
+      const dx = puntoDestino.x - origen.x;
+      const dy = puntoDestino.y - origen.y;
+      const distancia = Math.hypot(dx, dy) || 1;
+      const nx = dx / distancia;
+      const ny = dy / distancia;
+      const inicioX = origen.x + nx * (nodeRadius + 2);
+      const inicioY = origen.y + ny * (nodeRadius + 2);
+      const finX = puntoDestino.x - nx * (nodeRadius + 4);
+      const finY = puntoDestino.y - ny * (nodeRadius + 4);
+
+      const normalX = -ny;
+      const normalY = nx;
+      const curva = ((indiceMoneda % 3) - 1) * 14 * zoom;
+      const medioX = (inicioX + finX) / 2 + normalX * curva;
+      const medioY = (inicioY + finY) / 2 + normalY * curva;
+
+      const llegaAceptacion = destino >= threshold;
+      const color = llegaAceptacion ? '#16a34a' : coinColors[moneda];
+
+      ctx.strokeStyle = color;
+      ctx.lineWidth = llegaAceptacion ? 2.8 : 1.5;
+      ctx.beginPath();
+      ctx.moveTo(inicioX, inicioY);
+      ctx.quadraticCurveTo(medioX, medioY, finX, finY);
+      ctx.stroke();
+      drawArrowhead(finX, finY, Math.atan2(finY - medioY, finX - medioX), color, 9 * zoom);
+    });
+  });
+
+  puntos.forEach((punto) => {
+    const aceptacion = punto.estado >= threshold;
+    const radio = aceptacion ? 25 * zoom : 22 * zoom;
+
+    if (aceptacion) {
+      ctx.fillStyle = '#ecfdf5';
+      ctx.strokeStyle = '#16a34a';
+      ctx.lineWidth = 2.2;
+      ctx.beginPath();
+      ctx.arc(punto.x, punto.y, radio + 6, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+    }
+
+    ctx.fillStyle = aceptacion ? '#dcfce7' : '#ffffff';
+    ctx.strokeStyle = aceptacion ? '#16a34a' : '#0f766e';
+    ctx.lineWidth = aceptacion ? 3 : 2;
+    ctx.beginPath();
+    ctx.arc(punto.x, punto.y, radio, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = '#134e4a';
+    ctx.font = 'bold ' + (11 * zoom) + 'px Arial';
+    ctx.fillText('q' + Math.round(punto.estado * 100), punto.x, punto.y - 5);
+    ctx.font = (8 * zoom) + 'px Arial';
+    ctx.fillStyle = '#64748b';
+    ctx.fillText('S/' + punto.estado.toFixed(2), punto.x, punto.y + 8);
+  });
+
+  const inicio = puntos.get(0);
+  if (inicio) {
+    ctx.strokeStyle = '#0ea5e9';
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    ctx.moveTo(inicio.x - 48 * zoom, inicio.y);
+    ctx.lineTo(inicio.x - nodeRadius - 2, inicio.y);
+    ctx.stroke();
+    drawArrowhead(inicio.x - nodeRadius - 2, inicio.y, 0, '#0ea5e9', 12 * zoom);
+    ctx.fillStyle = '#0f766e';
+    ctx.font = 'bold ' + (9 * zoom) + 'px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText('inicio', inicio.x - 54 * zoom, inicio.y + 18);
+  }
+
+  ctx.fillStyle = '#475569';
+  ctx.font = (10 * zoom) + 'px Arial';
+  ctx.textAlign = 'left';
+  ctx.fillText('Objetivo: q' + Math.round(threshold * 100) + ' (' + formatMoney(threshold) + ')', 16, 22);
+  ctx.font = (9 * zoom) + 'px Arial';
+  ctx.fillText('Grafo por niveles BFS: cada flecha = moneda de entrada.', 16, 40);
+
+  const leyendaY = canvas.height - 16;
+  ctx.fillStyle = '#475569';
+  ctx.font = (9 * zoom) + 'px Arial';
+  ctx.fillText('Verde = llega a aceptacion | Doble borde = estado objetivo', 16, leyendaY);
+}
+
+function buildTable(container, threshold) {
+  const states = [];
+  for (let i = 0; i <= 50; i++) {
+    states.push(Math.round(i * 0.10 * 100) / 100);
+  }
+
+  let html = '<table class="transition-table"><thead><tr><th>Estado</th>';
+  coins.forEach(c => html += '<th>S/ ' + c.toFixed(2) + '</th>');
+  html += '</tr></thead><tbody>';
+
+  states.forEach(s => {
+    html += '<tr><td><strong>q' + Math.round(s * 100) + '</strong><br><small>' + formatMoney(s) + '</small></td>';
+    coins.forEach(c => {
+      const next = Math.round((s + c) * 100) / 100;
+      if (next >= threshold) {
+        const cambio = next - threshold;
+        html += '<td class="accept-cell">ENTREGA' + (cambio > 0 ? '<br>+S/ ' + cambio.toFixed(2) : '') + '</td>';
+      } else {
+        html += '<td>q' + Math.round(next * 100) + '<br><small>' + formatMoney(next) + '</small></td>';
+      }
+    });
+    html += '</tr>';
+  });
+
+  html += '</tbody></table>';
+  container.innerHTML = html;
+}
+
+function makePannable(wrapper) {
+  const inner = wrapper.querySelector('.graph-pan-inner');
+  let dragging = false, startX, startY, tx = 0, ty = 0;
+
+  function onStart(e) {
+    dragging = true;
+    const point = e.touches ? e.touches[0] : e;
+    startX = point.clientX - tx;
+    startY = point.clientY - ty;
+    wrapper.style.cursor = 'grabbing';
+    e.preventDefault();
+  }
+
+  function onMove(e) {
+    if (!dragging) return;
+    const point = e.touches ? e.touches[0] : e;
+    tx = point.clientX - startX;
+    ty = point.clientY - startY;
+    inner.style.transform = 'translate(' + tx + 'px, ' + ty + 'px)';
+  }
+
+  function onEnd() {
+    dragging = false;
+    wrapper.style.cursor = 'grab';
+  }
+
+  wrapper.addEventListener('mousedown', onStart);
+  wrapper.addEventListener('touchstart', onStart, { passive: false });
+  window.addEventListener('mousemove', onMove);
+  window.addEventListener('touchmove', onMove, { passive: false });
+  window.addEventListener('mouseup', onEnd);
+  window.addEventListener('touchend', onEnd);
+}
+
+function init() {
+  const container = document.getElementById('priceSections');
+
+  prices.forEach((price, idx) => {
+    const prods = getProductsByPrice(price);
+    const section = document.createElement('div');
+    section.className = 'price-section';
+
+    const prodTags = prods.map(p => '<span class="product-tag">' + p.name + ' (' + p.desc + ')</span>').join('');
+
+    section.innerHTML =
+      '<h2>Estante ' + String.fromCharCode(65 + idx) + ' - ' + formatMoney(price) + '</h2>' +
+      '<p class="price-subtitle">Productos: ' + prods.map(p => p.name).join(', ') + '</p>' +
+      '<div class="product-list">' + prodTags + '</div>' +
+      '<div class="graph-container" id="pan-' + idx + '">' +
+        '<div class="graph-pan-inner"><canvas id="graph-' + idx + '"></canvas></div>' +
+        '<div class="pan-hint">Arrastra para mover</div>' +
+      '</div>' +
+      '<div class="graph-legend"><strong>Colores de flechas:</strong> Cada moneda tiene un color unico. <span style="color:#16a34a;">Verde</span> = llega al estado de aceptacion (' + formatMoney(price) + '). El nodo con doble borde verde es el estado objetivo q' + Math.round(price * 100) + '.</div>' +
+      '<h3 style="color:#ffd700;margin-bottom:10px;">Tabla de Transiciones - ' + formatMoney(price) + '</h3>' +
+      '<div class="table-container" id="table-' + idx + '"></div>';
+
+    container.appendChild(section);
+  });
+
+  prices.forEach((price, idx) => {
+    const canvas = document.getElementById('graph-' + idx);
+    const tableContainer = document.getElementById('table-' + idx);
+    const panWrapper = document.getElementById('pan-' + idx);
+    if (canvas) buildGraph(canvas, price);
+    if (tableContainer) buildTable(tableContainer, price);
+    if (panWrapper) makePannable(panWrapper);
+  });
+}
+
+window.onload = init;
+window.onresize = function() {
+  prices.forEach((price, idx) => {
+    const canvas = document.getElementById('graph-' + idx);
+    if (canvas) buildGraph(canvas, price);
+  });
+};
+</script>
+</body>
+</html>
