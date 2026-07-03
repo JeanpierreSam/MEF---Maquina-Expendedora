@@ -84,6 +84,7 @@ body {
   margin-bottom: 15px;
   cursor: grab;
   user-select: none;
+  touch-action: none;
 }
 
 .graph-container:active {
@@ -100,6 +101,69 @@ body {
   width: 100%;
   height: 100%;
   display: block;
+}
+
+.graph-pan-controls {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: flex;
+  gap: 6px;
+  z-index: 3;
+}
+
+.graph-pan-controls button {
+  background: #3d3d3d;
+  border: 2px solid #555;
+  color: white;
+  min-width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1em;
+  font-weight: bold;
+  transition: all 0.2s;
+  padding: 0 10px;
+}
+
+.graph-pan-controls button:hover {
+  background: #00b894;
+  border-color: #00b894;
+}
+
+.graph-toolbar {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 10px;
+  align-items: center;
+}
+
+.zoom-btn {
+  background: #3d3d3d;
+  border: 2px solid #555;
+  color: white;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1.1em;
+  font-weight: bold;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.zoom-btn:hover {
+  background: #00b894;
+  border-color: #00b894;
+}
+
+.zoom-label {
+  color: #aaa;
+  font-size: 0.85em;
+  margin-left: 8px;
+  min-width: 45px;
 }
 
 .pan-hint {
@@ -256,16 +320,16 @@ body {
 <script>
 const products = {
   'A1': { name: 'Agua Cielo', price: 2.50, desc: '625 ml' },
-  'A2': { name: 'Jugo Durazno', price: 2.50, desc: '300 ml' },
-  'A3': { name: 'Jugo Mango', price: 2.50, desc: '300 ml' },
-  'A4': { name: 'Jugo Naranja', price: 2.50, desc: '300 ml' },
-  'B1': { name: 'Galleta Coco', price: 5.00, desc: '6 u' },
-  'B2': { name: 'Galleta Kiwicha', price: 5.00, desc: '6 u' },
-  'B3': { name: 'Galleta Naranja', price: 5.00, desc: '6 u' },
+  'A2': { name: 'Jugo Durazno', price: 2.80, desc: '300 ml' },
+  'A3': { name: 'Jugo Mango', price: 2.80, desc: '300 ml' },
+  'A4': { name: 'Jugo Naranja', price: 2.80, desc: '300 ml' },
+  'B1': { name: 'Galleta Coco', price: 4.60, desc: '6 u' },
+  'B2': { name: 'Galleta Kiwicha', price: 4.60, desc: '6 u' },
+  'B3': { name: 'Galleta Naranja', price: 4.60, desc: '6 u' },
   'B4': { name: 'Pan Integral', price: 5.00, desc: 'Mediano' },
   'C1': { name: 'Palitos Clasicos', price: 3.00, desc: '60 g' },
-  'C2': { name: 'Palitos Especias', price: 3.00, desc: '60 g' },
-  'C3': { name: 'Tostada Blanca', price: 4.00, desc: '6 u' },
+  'C2': { name: 'Palitos Especias', price: 3.70, desc: '60 g' },
+  'C3': { name: 'Tostada Blanca', price: 3.70, desc: '6 u' },
   'C4': { name: 'Tostada Integral', price: 4.00, desc: '6 u' }
 };
 
@@ -280,7 +344,7 @@ const coinColors = {
   5: '#ca8a04'
 };
 
-const prices = [2.50, 3.00, 4.00, 5.00];
+const prices = [2.50, 2.80, 3.00, 3.70, 4.00, 4.60, 5.00];
 
 function getProductsByPrice(price) {
   return Object.values(products).filter(p => p.price === price);
@@ -293,10 +357,6 @@ function formatMoney(val) {
 function buildGraph(canvas, threshold) {
   const ctx = canvas.getContext('2d');
   const container = canvas.parentElement;
-  canvas.width = container.offsetWidth;
-  canvas.height = container.offsetHeight;
-
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
 
   const niveles = new Map([[0, 0]]);
   const cola = [0];
@@ -330,7 +390,8 @@ function buildGraph(canvas, threshold) {
 
   columnas.forEach((columna, nivel) => {
     const alturaColumna = (columna.length - 1) * separacionY;
-    const inicioY = margenY + Math.max(0, (canvas.height - margenY - 70 * zoom - alturaColumna) / 2);
+    const baseY = margenY + 30 * zoom;
+    const inicioY = baseY + Math.max(0, (400 * zoom - alturaColumna) / 2);
     columna.forEach((estado, fila) => {
       puntos.set(estado, {
         estado: estado,
@@ -339,6 +400,37 @@ function buildGraph(canvas, threshold) {
       });
     });
   });
+
+  // ENTREGA node position
+  const entregaX = margenX + (maxNivel + 1) * separacionX;
+  let entregaCenterY = margenY + 150 * zoom;
+  const thresholdPunto = puntos.get(threshold);
+  if (thresholdPunto) {
+    entregaCenterY = thresholdPunto.y;
+  }
+
+  // Calculate canvas size from node positions
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  puntos.forEach(function(p) {
+    minX = Math.min(minX, p.x);
+    minY = Math.min(minY, p.y);
+    maxX = Math.max(maxX, p.x);
+    maxY = Math.max(maxY, p.y);
+  });
+  maxX = Math.max(maxX, entregaX);
+  maxY = Math.max(maxY, entregaCenterY);
+
+  const pad = 50 * zoom;
+  const graphWidth = maxX + pad + 50 * zoom;
+  const graphHeight = maxY + pad + 30 * zoom;
+
+  canvas.width = Math.max(container.offsetWidth, graphWidth);
+  canvas.height = Math.max(container.offsetHeight, graphHeight);
+
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  container.dataset.contentWidth = graphWidth.toString();
+  container.dataset.contentHeight = graphHeight.toString();
 
   function drawArrowhead(x, y, angle, color, size) {
     ctx.save();
@@ -357,11 +449,14 @@ function buildGraph(canvas, threshold) {
   }
 
   const nodeRadius = 22 * zoom;
+  const entregaRadius = 26 * zoom;
 
+  // Draw normal arrows (excluding those that reach threshold — those go to ENTREGA)
   estados.forEach((estado) => {
     coins.forEach((moneda, indiceMoneda) => {
       const destino = Math.round(Math.min(estado + moneda, threshold) * 100) / 100;
       if (destino === estado) return;
+      if (destino >= threshold) return; // These go to ENTREGA instead
       const origen = puntos.get(estado);
       const puntoDestino = puntos.get(destino);
       if (!origen || !puntoDestino) return;
@@ -382,11 +477,10 @@ function buildGraph(canvas, threshold) {
       const medioX = (inicioX + finX) / 2 + normalX * curva;
       const medioY = (inicioY + finY) / 2 + normalY * curva;
 
-      const llegaAceptacion = destino >= threshold;
-      const color = llegaAceptacion ? '#16a34a' : coinColors[moneda];
+      const color = coinColors[moneda];
 
       ctx.strokeStyle = color;
-      ctx.lineWidth = llegaAceptacion ? 2.8 : 1.5;
+      ctx.lineWidth = 1.5;
       ctx.beginPath();
       ctx.moveTo(inicioX, inicioY);
       ctx.quadraticCurveTo(medioX, medioY, finX, finY);
@@ -395,6 +489,42 @@ function buildGraph(canvas, threshold) {
     });
   });
 
+  // Draw arrows to ENTREGA node
+  estados.forEach((estado) => {
+    coins.forEach((moneda, indiceMoneda) => {
+      const destino = Math.round(Math.min(estado + moneda, threshold) * 100) / 100;
+      if (destino < threshold) return;
+      if (destino === estado) return;
+      const origen = puntos.get(estado);
+      if (!origen) return;
+
+      const dx = entregaX - origen.x;
+      const dy = entregaCenterY - origen.y;
+      const distancia = Math.hypot(dx, dy) || 1;
+      const nx = dx / distancia;
+      const ny = dy / distancia;
+      const inicioX = origen.x + nx * (nodeRadius + 2);
+      const inicioY = origen.y + ny * (nodeRadius + 2);
+      const finX = entregaX - nx * (entregaRadius + 4);
+      const finY = entregaCenterY - ny * (entregaRadius + 4);
+
+      const normalX = -ny;
+      const normalY = nx;
+      const curva = ((indiceMoneda % 3) - 1) * 12 * zoom;
+      const medioX = (inicioX + finX) / 2 + normalX * curva;
+      const medioY = (inicioY + finY) / 2 + normalY * curva;
+
+      ctx.strokeStyle = '#16a34a';
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.moveTo(inicioX, inicioY);
+      ctx.quadraticCurveTo(medioX, medioY, finX, finY);
+      ctx.stroke();
+      drawArrowhead(finX, finY, Math.atan2(finY - medioY, finX - medioX), '#16a34a', 9 * zoom);
+    });
+  });
+
+  // Draw normal nodes
   puntos.forEach((punto) => {
     const aceptacion = punto.estado >= threshold;
     const radio = aceptacion ? 25 * zoom : 22 * zoom;
@@ -427,6 +557,31 @@ function buildGraph(canvas, threshold) {
     ctx.fillText('S/' + punto.estado.toFixed(2), punto.x, punto.y + 8);
   });
 
+  // Draw ENTREGA node
+  ctx.fillStyle = '#ecfdf5';
+  ctx.strokeStyle = '#16a34a';
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.arc(entregaX, entregaCenterY, entregaRadius + 6, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.stroke();
+  ctx.fillStyle = '#dcfce7';
+  ctx.strokeStyle = '#16a34a';
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.arc(entregaX, entregaCenterY, entregaRadius, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.stroke();
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillStyle = '#166534';
+  ctx.font = 'bold ' + (10 * zoom) + 'px Arial';
+  ctx.fillText('ENTREGA', entregaX, entregaCenterY - 4);
+  ctx.font = (8 * zoom) + 'px Arial';
+  ctx.fillStyle = '#16a34a';
+  ctx.fillText('✓ Producto', entregaX, entregaCenterY + 9);
+
+  // Draw initial arrow
   const inicio = puntos.get(0);
   if (inicio) {
     ctx.strokeStyle = '#0ea5e9';
@@ -452,7 +607,7 @@ function buildGraph(canvas, threshold) {
   const leyendaY = canvas.height - 16;
   ctx.fillStyle = '#475569';
   ctx.font = (9 * zoom) + 'px Arial';
-  ctx.fillText('Verde = llega a aceptacion | Doble borde = estado objetivo', 16, leyendaY);
+  ctx.fillText('Verde = llega a ENTREGA | Doble borde = estado objetivo', 16, leyendaY);
 }
 
 function buildTable(container, threshold) {
@@ -483,15 +638,45 @@ function buildTable(container, threshold) {
   container.innerHTML = html;
 }
 
-function makePannable(wrapper) {
+function makePanZoom(wrapper, options) {
   const inner = wrapper.querySelector('.graph-pan-inner');
-  let dragging = false, startX, startY, tx = 0, ty = 0;
+  const state = {
+    tx: 0,
+    ty: 0,
+    scale: 1,
+    minScale: 0.25,
+    maxScale: 3,
+    factor: 1.15
+  };
+  if (options) Object.assign(state, options);
+
+  let dragging = false, startX, startY;
+  let pinch = null;
+
+  function update() {
+    inner.style.transform = 'translate(' + state.tx.toFixed(2) + 'px, ' + state.ty.toFixed(2) + 'px) scale(' + state.scale.toFixed(3) + ')';
+  }
+
+  function setScale(newScale, px, py) {
+    newScale = Math.max(state.minScale, Math.min(state.maxScale, newScale));
+    if (Math.abs(newScale - state.scale) < 0.001) return;
+    if (px == null || py == null) {
+      const rect = inner.getBoundingClientRect();
+      px = rect.width / 2;
+      py = rect.height / 2;
+    }
+    state.tx = px - (px - state.tx) * newScale / state.scale;
+    state.ty = py - (py - state.ty) * newScale / state.scale;
+    state.scale = newScale;
+    update();
+  }
 
   function onStart(e) {
+    if (e.touches && e.touches.length === 2) return;
     dragging = true;
     const point = e.touches ? e.touches[0] : e;
-    startX = point.clientX - tx;
-    startY = point.clientY - ty;
+    startX = point.clientX - state.tx;
+    startY = point.clientY - state.ty;
     wrapper.style.cursor = 'grabbing';
     e.preventDefault();
   }
@@ -499,9 +684,9 @@ function makePannable(wrapper) {
   function onMove(e) {
     if (!dragging) return;
     const point = e.touches ? e.touches[0] : e;
-    tx = point.clientX - startX;
-    ty = point.clientY - startY;
-    inner.style.transform = 'translate(' + tx + 'px, ' + ty + 'px)';
+    state.tx = point.clientX - startX;
+    state.ty = point.clientY - startY;
+    update();
   }
 
   function onEnd() {
@@ -509,12 +694,88 @@ function makePannable(wrapper) {
     wrapper.style.cursor = 'grab';
   }
 
+  function onWheel(e) {
+    e.preventDefault();
+    const rect = inner.getBoundingClientRect();
+    const px = e.clientX - rect.left;
+    const py = e.clientY - rect.top;
+    const dir = e.deltaY < 0 ? 1 : -1;
+    setScale(state.scale * (dir > 0 ? state.factor : 1 / state.factor), px, py);
+  }
+
+  function onTouchStart(e) {
+    if (e.touches.length === 2) {
+      const p1 = e.touches[0];
+      const p2 = e.touches[1];
+      pinch = {
+        dist: Math.hypot(p2.clientX - p1.clientX, p2.clientY - p1.clientY),
+        scale: state.scale,
+        mx: (p1.clientX + p2.clientX) / 2,
+        my: (p1.clientY + p2.clientY) / 2,
+        tx: state.tx,
+        ty: state.ty
+      };
+      e.preventDefault();
+    }
+  }
+
+  function onTouchMove(e) {
+    if (!pinch || e.touches.length !== 2) return;
+    e.preventDefault();
+    const p1 = e.touches[0];
+    const p2 = e.touches[1];
+    const dist = Math.hypot(p2.clientX - p1.clientX, p2.clientY - p1.clientY);
+    const newScale = pinch.scale * (dist / pinch.dist);
+    const rect = inner.getBoundingClientRect();
+    const px = pinch.mx - rect.left;
+    const py = pinch.my - rect.top;
+    state.tx = px - (px - pinch.tx) * newScale / pinch.scale;
+    state.ty = py - (py - pinch.ty) * newScale / pinch.scale;
+    state.scale = Math.max(state.minScale, Math.min(state.maxScale, newScale));
+    update();
+  }
+
+  function onTouchEnd(e) {
+    if (e.touches.length < 2) pinch = null;
+  }
+
   wrapper.addEventListener('mousedown', onStart);
-  wrapper.addEventListener('touchstart', onStart, { passive: false });
+  wrapper.addEventListener('touchstart', onTouchStart, { passive: false });
+  wrapper.addEventListener('wheel', onWheel, { passive: false });
   window.addEventListener('mousemove', onMove);
-  window.addEventListener('touchmove', onMove, { passive: false });
+  window.addEventListener('touchmove', onTouchMove, { passive: false });
   window.addEventListener('mouseup', onEnd);
-  window.addEventListener('touchend', onEnd);
+  window.addEventListener('touchend', onTouchEnd);
+
+  const api = {
+    zoomIn: function() {
+      const rect = inner.getBoundingClientRect();
+      setScale(state.scale * state.factor, rect.width / 2, rect.height / 2);
+    },
+    zoomOut: function() {
+      const rect = inner.getBoundingClientRect();
+      setScale(state.scale / state.factor, rect.width / 2, rect.height / 2);
+    },
+    center: function() {
+      state.tx = 0;
+      state.ty = 0;
+      state.scale = 1;
+      update();
+    },
+    fit: function() {
+      const cw = parseFloat(inner.dataset.contentWidth || inner.offsetWidth);
+      const ch = parseFloat(inner.dataset.contentHeight || inner.offsetHeight);
+      const rect = wrapper.getBoundingClientRect();
+      const scale = Math.min(rect.width / cw, rect.height / ch, 1);
+      state.scale = Math.max(state.minScale, scale);
+      state.tx = (rect.width - cw * state.scale) / 2;
+      state.ty = (rect.height - ch * state.scale) / 2;
+      update();
+    }
+  };
+
+  wrapper.panZoomApi = api;
+  return api;
 }
 
 function init() {
@@ -528,14 +789,20 @@ function init() {
     const prodTags = prods.map(p => '<span class="product-tag">' + p.name + ' (' + p.desc + ')</span>').join('');
 
     section.innerHTML =
-      '<h2>Estante ' + String.fromCharCode(65 + idx) + ' - ' + formatMoney(price) + '</h2>' +
+      '<h2>Precio: ' + formatMoney(price) + '</h2>' +
       '<p class="price-subtitle">Productos: ' + prods.map(p => p.name).join(', ') + '</p>' +
       '<div class="product-list">' + prodTags + '</div>' +
       '<div class="graph-container" id="pan-' + idx + '">' +
         '<div class="graph-pan-inner"><canvas id="graph-' + idx + '"></canvas></div>' +
-        '<div class="pan-hint">Arrastra para mover</div>' +
+        '<div class="graph-pan-controls">' +
+          '<button title="Zoom out">−</button>' +
+          '<button title="Zoom in">+</button>' +
+          '<button title="Centrar">C</button>' +
+          '<button title="Ajustar">A</button>' +
+        '</div>' +
+        '<div class="pan-hint">Arrastra para mover · Rueda para zoom</div>' +
       '</div>' +
-      '<div class="graph-legend"><strong>Colores de flechas:</strong> Cada moneda tiene un color unico. <span style="color:#16a34a;">Verde</span> = llega al estado de aceptacion (' + formatMoney(price) + '). El nodo con doble borde verde es el estado objetivo q' + Math.round(price * 100) + '.</div>' +
+      '<div class="graph-legend"><strong>Colores de flechas:</strong> Cada moneda tiene un color unico. <span style="color:#16a34a;">Verde</span> = llega al nodo ENTREGA (' + formatMoney(price) + '). El nodo con doble borde verde es el estado objetivo.</div>' +
       '<h3 style="color:#ffd700;margin-bottom:10px;">Tabla de Transiciones - ' + formatMoney(price) + '</h3>' +
       '<div class="table-container" id="table-' + idx + '"></div>';
 
@@ -548,7 +815,16 @@ function init() {
     const panWrapper = document.getElementById('pan-' + idx);
     if (canvas) buildGraph(canvas, price);
     if (tableContainer) buildTable(tableContainer, price);
-    if (panWrapper) makePannable(panWrapper);
+    if (panWrapper) {
+      const api = makePanZoom(panWrapper);
+      const buttons = panWrapper.querySelectorAll('.graph-pan-controls button');
+      if (buttons.length >= 4) {
+        buttons[0].addEventListener('click', api.zoomOut);
+        buttons[1].addEventListener('click', api.zoomIn);
+        buttons[2].addEventListener('click', api.center);
+        buttons[3].addEventListener('click', api.fit);
+      }
+    }
   });
 }
 

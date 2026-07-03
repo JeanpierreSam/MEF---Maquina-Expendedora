@@ -465,6 +465,7 @@ body {
   height: 650px;
   cursor: grab;
   user-select: none;
+  touch-action: none;
 }
 
 .graph-canvas-container:active {
@@ -650,7 +651,7 @@ body {
   <!-- Panel de Productos -->
   <div class="products-panel" role="region" aria-label="Panel de productos">
     <div class="shelf">
-      <div class="shelf-title">Estante A - Bebidas S/ 2.50</div>
+      <div class="shelf-title">Estante A - Bebidas</div>
       <div class="products-grid">
         <div class="product-card" id="prod-A1" onclick="selectByCode('A1')" role="button" aria-label="Producto A1: Agua Cielo, S/ 2.50" style="background-image: url('imagenes/Agua/cielo-sin-gas2.png')">
           <span class="product-code">A1</span>
@@ -659,53 +660,53 @@ body {
           <div class="product-desc">625 ml</div>
           <div class="product-price">S/ 2.50</div>
         </div>
-        <div class="product-card" id="prod-A2" onclick="selectByCode('A2')" role="button" aria-label="Producto A2: Jugo Durazno, S/ 2.50" style="background-image: url('imagenes/Agua/durazno-600x600.png')">
+        <div class="product-card" id="prod-A2" onclick="selectByCode('A2')" role="button" aria-label="Producto A2: Jugo Durazno, S/ 2.80" style="background-image: url('imagenes/Agua/durazno-600x600.png')">
           <span class="product-code">A2</span>
           <div class="product-icon">🍑</div>
           <div class="product-name">Jugo Durazno</div>
           <div class="product-desc">300 ml</div>
-          <div class="product-price">S/ 2.50</div>
+          <div class="product-price">S/ 2.80</div>
         </div>
-        <div class="product-card" id="prod-A3" onclick="selectByCode('A3')" role="button" aria-label="Producto A3: Jugo Mango, S/ 2.50" style="background-image: url('imagenes/Agua/mango-2-600x600.png')">
+        <div class="product-card" id="prod-A3" onclick="selectByCode('A3')" role="button" aria-label="Producto A3: Jugo Mango, S/ 2.80" style="background-image: url('imagenes/Agua/mango-2-600x600.png')">
           <span class="product-code">A3</span>
           <div class="product-icon">🥭</div>
           <div class="product-name">Jugo Mango</div>
           <div class="product-desc">300 ml</div>
-          <div class="product-price">S/ 2.50</div>
+          <div class="product-price">S/ 2.80</div>
         </div>
-        <div class="product-card" id="prod-A4" onclick="selectByCode('A4')" role="button" aria-label="Producto A4: Jugo Naranja, S/ 2.50" style="background-image: url('imagenes/Agua/naranja-600x600.png')">
+        <div class="product-card" id="prod-A4" onclick="selectByCode('A4')" role="button" aria-label="Producto A4: Jugo Naranja, S/ 2.80" style="background-image: url('imagenes/Agua/naranja-600x600.png')">
           <span class="product-code">A4</span>
           <div class="product-icon">🍊</div>
           <div class="product-name">Jugo Naranja</div>
           <div class="product-desc">300 ml</div>
-          <div class="product-price">S/ 2.50</div>
+          <div class="product-price">S/ 2.80</div>
         </div>
       </div>
     </div>
 
     <div class="shelf">
-      <div class="shelf-title">Estante B - Galletas S/ 5.00</div>
+      <div class="shelf-title">Estante B - Galletas</div>
       <div class="products-grid">
-        <div class="product-card" id="prod-B1" onclick="selectByCode('B1')" role="button" aria-label="Producto B1: Galleta Coco, S/ 5.00" style="background-image: url('imagenes/Galletas/Galleta-coco-1-600x600.png')">
+        <div class="product-card" id="prod-B1" onclick="selectByCode('B1')" role="button" aria-label="Producto B1: Galleta Coco, S/ 4.60" style="background-image: url('imagenes/Galletas/Galleta-coco-1-600x600.png')">
           <span class="product-code">B1</span>
           <div class="product-icon">🥥</div>
           <div class="product-name">Galleta Coco</div>
           <div class="product-desc">6 u</div>
-          <div class="product-price">S/ 5.00</div>
+          <div class="product-price">S/ 4.60</div>
         </div>
-        <div class="product-card" id="prod-B2" onclick="selectByCode('B2')" role="button" aria-label="Producto B2: Galleta Kiwicha, S/ 5.00" style="background-image: url('imagenes/Galletas/Galleta-kiwicha-int-600x600.png')">
+        <div class="product-card" id="prod-B2" onclick="selectByCode('B2')" role="button" aria-label="Producto B2: Galleta Kiwicha, S/ 4.60" style="background-image: url('imagenes/Galletas/Galleta-kiwicha-int-600x600.png')">
           <span class="product-code">B2</span>
           <div class="product-icon">🌾</div>
           <div class="product-name">Galleta Kiwicha</div>
           <div class="product-desc">6 u</div>
-          <div class="product-price">S/ 5.00</div>
+          <div class="product-price">S/ 4.60</div>
         </div>
-        <div class="product-card" id="prod-B3" onclick="selectByCode('B3')" role="button" aria-label="Producto B3: Galleta Naranja, S/ 5.00" style="background-image: url('imagenes/Galletas/Galleta-naranja-1-600x600.png')">
+        <div class="product-card" id="prod-B3" onclick="selectByCode('B3')" role="button" aria-label="Producto B3: Galleta Naranja, S/ 4.60" style="background-image: url('imagenes/Galletas/Galleta-naranja-1-600x600.png')">
           <span class="product-code">B3</span>
           <div class="product-icon">🍊</div>
           <div class="product-name">Galleta Naranja</div>
           <div class="product-desc">6 u</div>
-          <div class="product-price">S/ 5.00</div>
+          <div class="product-price">S/ 4.60</div>
         </div>
         <div class="product-card" id="prod-B4" onclick="selectByCode('B4')" role="button" aria-label="Producto B4: Pan Integral, S/ 5.00" style="background-image: url('imagenes/Galletas/Pan-integ-mediano-600x600.png')">
           <span class="product-code">B4</span>
@@ -727,19 +728,19 @@ body {
           <div class="product-desc">60 g</div>
           <div class="product-price">S/ 3.00</div>
         </div>
-        <div class="product-card" id="prod-C2" onclick="selectByCode('C2')" role="button" aria-label="Producto C2: Palitos Especias, S/ 3.00" style="background-image: url('imagenes/Snaks/Palitos-de-Especias-600x600.png')">
+        <div class="product-card" id="prod-C2" onclick="selectByCode('C2')" role="button" aria-label="Producto C2: Palitos Especias, S/ 3.70" style="background-image: url('imagenes/Snaks/Palitos-de-Especias-600x600.png')">
           <span class="product-code">C2</span>
           <div class="product-icon">🌿</div>
           <div class="product-name">Palitos Especias</div>
           <div class="product-desc">60 g</div>
-          <div class="product-price">S/ 3.00</div>
+          <div class="product-price">S/ 3.70</div>
         </div>
-        <div class="product-card" id="prod-C3" onclick="selectByCode('C3')" role="button" aria-label="Producto C3: Tostada Blanca, S/ 4.00" style="background-image: url('imagenes/Snaks/Tosatada-blanca-600x600.png')">
+        <div class="product-card" id="prod-C3" onclick="selectByCode('C3')" role="button" aria-label="Producto C3: Tostada Blanca, S/ 3.70" style="background-image: url('imagenes/Snaks/Tosatada-blanca-600x600.png')">
           <span class="product-code">C3</span>
           <div class="product-icon"></div>
           <div class="product-name">Tostada Blanca</div>
           <div class="product-desc">6 u</div>
-          <div class="product-price">S/ 4.00</div>
+          <div class="product-price">S/ 3.70</div>
         </div>
         <div class="product-card" id="prod-C4" onclick="selectByCode('C4')" role="button" aria-label="Producto C4: Tostada Integral, S/ 4.00" style="background-image: url('imagenes/Snaks/Tosatada-integ-600x600.png')">
           <span class="product-code">C4</span>
@@ -807,9 +808,10 @@ body {
     </div>
     
     <div class="graph-controls">
-      <button class="ctrl-btn" onclick="zoomIn()">+</button>
       <button class="ctrl-btn" onclick="zoomOut()">−</button>
+      <button class="ctrl-btn" onclick="zoomIn()">+</button>
       <button class="center-btn" onclick="centerGraph()">Centrar</button>
+      <button class="center-btn" onclick="fitGraph()">Ajustar</button>
     </div>
     
     <div id="tabContent">
@@ -818,10 +820,10 @@ body {
           <div class="graph-pan-inner">
             <canvas id="graphCanvas"></canvas>
           </div>
-          <div class="pan-hint">Arrastra para mover</div>
+          <div class="pan-hint">Arrastra para mover · Rueda para zoom</div>
         </div>
         <div class="graph-legend">
-          <strong>Colores de flechas:</strong> Cada moneda tiene un color único. <span style="color:#f97316;">Naranja</span> = tramo ya recorrido con el saldo actual. <span style="color:#16a34a;">Verde</span> = llega al estado de aceptación (precio del producto). El nodo con doble borde verde es el estado objetivo.
+          <strong>Colores de flechas:</strong> Cada moneda tiene un color único. <span style="color:#f97316;">Naranja</span> = tramo ya recorrido con el saldo actual. <span style="color:#16a34a;">Verde</span> = llega al estado de aceptación. <span style="color:#ffd700;">Dorado punteado</span> = flujo de entrega y vuelto. Nodo <span style="color:#16a34a;">ENTREGA</span> = producto dispensado. Nodo <span style="color:#ffd700;">VUELTO</span> = cambio devuelto.
         </div>
       </div>
       <div id="tabTable" style="display:none;"></div>
@@ -833,4 +835,3 @@ body {
 <script src="app.js"></script>
 </body>
 </html>
- 
